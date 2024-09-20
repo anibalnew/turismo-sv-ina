@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Sitios Turísticos en El Salvador</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #1f1f1f;
+            color:  #e0e0e0;
+        }
+        #map {
+            height: 100%;
+            width: 75%;
+            border-right: 1px solid #333;
+        }
+        #sidebar {
+            width: 25%;
+            background-color: #2a2a2a;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .tourist-item {
+            cursor: pointer;
+            padding: 15px;
+            border-bottom: 1px solid #444;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .tourist-item:hover {
+            background-color: #333;
+            transform: scale(1.02);
+        }
+        .tourist-item img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        h2 {
+            text-align: center;
+            color: #f5c518;
+            margin-bottom: 20px;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .route-button {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #f5c518;
+            color: #2a2a2a;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+            font-size: 16px;
+        }
+        .route-button:hover {
+            background-color: #e0b81e;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+        .route-button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        /* Estilo del popup */
+        .leaflet-popup-content-wrapper {
+            background: #333;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        .leaflet-popup-content {
+            color: #e0e0e0;
+        }
+        .leaflet-popup-tip {
+            background: #333;
+            border-top: 1px solid #444;
+        }
+        .leaflet-popup-content img {
+            border-radius: 8px;
+            max-width: 100%;
+            height: auto;
+        }
+        /* Asegúrate de que este código esté en tu archivo CSS */
+
+/* General */
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* Contenedor */
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 1rem;
+}
+
+/* Cajas de contenido */
+.box {
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem;
+    flex: 1 1 300px; /* Flex-grow, flex-shrink, flex-basis */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .box {
+        flex-basis: 100%; /* Cajas ocupan el 100% en pantallas pequeñas */
+    }
+}
+
+@media (min-width: 769px) {
+    .box {
+        flex-basis: 45%; /* Dos cajas por fila en pantallas medianas */
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h2>Sitios Turísticos de El Salvador</h2>
+        <div id="tourist-list"></div>
+    </div>
+    <div id="map"></div>
+    
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Inicializa el mapa
+        const map = L.map('map').setView([13.7942, -88.8965], 9); // Coordenadas del centro de El Salvador
+
+        // Añade una capa de mapa de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Datos de los centros turísticos
+        const touristSpots = [
+            {
+                name: "Playa El Tunco",
+                coords: [13.492996538325523, -89.38147643500668],
+                image: "https://ipanelsalvador.files.wordpress.com/2012/09/eltiunco.jpg",
+                description: "Playa famosa por sus olas ideales para surfistas.",
+                address: "Playa El Tunco, El Salvador"
+            },
+            {
+                name: "Centro Histórico de San Salvador",
+                coords: [13.695837915185809, -89.1967802434791],
+                image: "https://upload.wikimedia.org/wikipedia/commons/6/68/Plaza-barrios-san-salvador.png",
+                description: "Zona histórica con monumentos emblemáticos y arquitectura colonial.",
+                address: "San Salvador, El Salvador"
+            },
+            {
+                name: "Surf City",
+                coords: [13.493192264029512, -89.38147608655342],
+                image: "https://elsalvador.travel/system/wp-content/uploads/2023/03/Sunset-Park01.jpg",
+                description: "Una serie de playas famosas por sus olas ideales para surfistas.",
+                address: "La Libertad, El Salvador"
+            },
+            {
+                name: "Tazumal",
+                coords: [13.979701877972957, -89.67421755735893],
+                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ99g61wPeAb9GrcoZjlIR-0OEoN01ZgvvoWA&s",
+                description: "Un sitio arqueológico con impresionantes ruinas mayas.",
+                address: "Chalchuapa, El Salvador"
+            },
+            {
+                name: "El Boquerón",
+                coords: [13.736645755912368, -89.28711279880069],
+                image: "https://media.tacdn.com/media/attractions-splice-spp-674x446/06/77/96/39.jpg",
+                description: "Un parque nacional con un cráter volcánico impresionante.",
+                address: "San Salvador, El Salvador"
+            },
+            {
+                name: "Lago de Coatepeque",
+                coords: [13.861764230553785, -89.54502759010914],
+                image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/16/8c/aa/3e/lago-de-coatepeque.jpg?w=1200&h=-1&s=1",
+                description: "Un hermoso lago de cráter con aguas turquesas.",
+                address: "Coatepeque, El Salvador"
+            },
+            {
+                name: "Divino Salvador del Mundo",
+                coords: [13.70167001720474, -89.22457112084045],
+                image: "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/79000/79652-Monumento-Al-Salvador-Del-Mundo.jpg",
+                description: "Un monumento emblemático en el centro de San Salvador.",
+                address: "Plaza Salvador del Mundo, San Salvador, El Salvador"
+            },
+            {
+                name: "Cascadas Los Tercios",
+                coords: [13.939121251711903, -89.01315939853055],
+                image: "https://www.todoturismo.sv/custom/domain_1/image_files/sitemgr_photo_1631.jpg",
+                description: "Cascadas impresionantes con formaciones rocosas únicas.",
+                address: "Suchitoto, El Salvador"
+            },
+            {
+                name: "Lago de Suchitoto",
+                coords: [14.086542786524525, -89.12244068488529],
+                image: "https://static.elmundo.sv/wp-content/uploads/2020/02/Lago-de-Suchitlan.jpg",
+                description: "Un sereno lago rodeado de colinas verdes, ideal para paseos en lancha y observación de aves.",
+                address: "Suchitoto, El Salvador"
+            },
+            {
+                name: "Peñón de Comasagua",
+                coords: [13.595267365584666, -89.37600911043505],
+                image: "https://elsalvador.travel/system/wp-content/uploads/2022/12/DestinationPenonComasagua01.jpg",
+                description: "Una formación rocosa imponente con vistas panorámicas del paisaje circundante.",
+                address: "Comasagua, El Salvador"
+            },
+            {
+                name: "Sitio Arqueológico San Andrés",
+                coords: [13.809329400849059, -89.38943235414841],
+                image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/09/e3/10/35/main-area.jpg?w=600&h=500&s=1",
+                description: "Ruinas mayas con estructuras ceremoniales y arquitectura prehispánica.",
+                address: "San Andrés, El Salvador"
+            },
+            {
+                name: "volcan de santa ana",
+                coords: [13.850092969584535, -89.62948733490789],
+                image: "https://elsalvador.travel/system/wp-content/uploads/2020/01/volcan-ilamatepeque-scaled.jpg",
+                description: "Pon a prueba tu resistencia alcanzando la cima del volcán Ilamatepec, también llamado volcán de Santa Ana.",
+                address: "Playa El Tunco, El Salvador"
+            },
+        ];
+
+        // Añade marcadores al mapa y popups con información
+        touristSpots.forEach(spot => {
+            const marker = L.marker(spot.coords).addTo(map);
+
+            marker.bindPopup(
+                `<div class="popup-content">
+                    <h3>${spot.name}</h3>
+                    <img src="${spot.image}" alt="${spot.name}" class="popup-image">
+                    <p>${spot.description}</p>
+                    <a class="route-button" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(spot.address)}" target="_blank">
+                        Cómo llegar
+                    </a>
+                </div>`
+            );
+        });
+
+        // Genera la lista en el sidebar y permite hacer zoom al lugar seleccionado
+        const touristList = document.getElementById('tourist-list');
+        touristSpots.forEach(spot => {
+            const item = document.createElement('div');
+            item.className = 'tourist-item';
+            item.innerHTML = `
+                <h3>${spot.name}</h3>
+                <img src="${spot.image}" alt="${spot.name}">
+                <p>${spot.description}</p>
+                <a class="route-button" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(spot.address)}" target="_blank">
+                    Cómo llegar
+                </a>
+            `;
+            item.addEventListener('click', () => {
+                map.setView(spot.coords, 14);
+                const marker = L.marker(spot.coords).addTo(map);
+                marker.bindPopup(
+                    `<div class="popup-content">
+                        <h3>${spot.name}</h3>
+                        <img src="${spot.image}" alt="${spot.name}" class="popup-image">
+                        <p>${spot.description}</p>
+                        <a class="route-button" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(spot.address)}" target="_blank">
+                            Cómo llegar
+                        </a>
+                    </div>`
+                ).openPopup();
+            });
+            touristList.appendChild(item);
+        });
+    </script>
+</body>
+</html>

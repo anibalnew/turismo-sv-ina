@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Turismo Salvadoreño</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #000000;
+            color: #faf5f5;
+            height: 100%;
+            overflow-x: hidden;
+        }
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+        }
+        .quiz-container {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(233, 247, 40, 0.3);
+        }
+        h1 {
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeIn 1s ease-out;
+        }
+        .question {
+            margin-bottom: 1rem;
+            animation: slideIn 0.5s ease-out;
+        }
+        .hint {
+            font-style: italic;
+            color: #FFC107;
+            margin-bottom: 1rem;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        .option {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            border-radius: 10px;
+            overflow: hidden;
+            aspect-ratio: 16 / 9;
+        }
+        .option:hover {
+            transform: scale(1.05);
+        }
+        .option img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .option .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            text-align: center;
+        }
+        .result {
+            text-align: center;
+            margin-top: 2rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @media (max-width: 768px) {
+            .options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <div class="quiz-container">
+        <h1>Quiz de Turismo Salvadoreño</h1>
+        <div id="quiz"></div>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        particlesJS("particles-js", {
+            "particles": {
+                "number": {
+                    "value": 80,
+                    "density": {
+                        "enable": true,
+                        "value_area": 800
+                    }
+                },
+                "color": {
+                    "value": "#ffffff"
+                },
+                "shape": {
+                    "type": "circle",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    },
+                    "polygon": {
+                        "nb_sides": 5
+                    }
+                },
+                "opacity": {
+                    "value": 0.5,
+                    "random": true
+                },
+                "size": {
+                    "value": 3,
+                    "random": true
+                },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 150,
+                    "color": "#ffffff",
+                    "opacity": 0.4,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 6,
+                    "direction": "none"
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "repulse"
+                    }
+                }
+            },
+            "retina_detect": true
+        });
+
+        const quizData = [
+            {
+                question: "¿Cuál es el volcán más alto de El Salvador?",
+                hint: "Es conocido por su impresionante vista y su actividad volcánica.",
+                options: [
+                    {text: "Volcán de Santa Ana", image: "https://png.pngtree.com/thumb_back/fh260/background/20220604/pngtree-izalco-volcano-in-salvador-panorama-santa-ana-volcano-landscape-photo-image_36629700.jpg"},
+                    {text: "Volcán de San Vicente", image: "https://cdn-pro.elsalvador.com/wp-content/uploads/2022/07/chinchontepec-expertos-vigilan-emanacion-gas-volcan-san-vicente.jpg"},
+                    {text: "Volcán de San Miguel", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_VDPVHNyUbmiBOMX_WVi6ix-7Y1jvueRVBQ&s"},
+                    {text: "Volcán de Izalco", image: "https://elsalvador.travel/system/wp-content/uploads/2022/12/DestinationVolcanIzalco04.jpg"}
+                ],
+                correct: 0
+            },
+            {
+                question: "¿Qué sitio arqueológico maya se encuentra en El Salvador?",
+                hint: "Famoso por sus pirámides y su historia maya.",
+                options: [
+                    {text: "Copán", image: "https://static.wixstatic.com/media/d8bb85_c147c58fd8b94222bbbc742f47b91f45~mv2.jpg/v1/fill/w_1000,h_563,al_c,q_85,usm_0.66_1.00_0.01/d8bb85_c147c58fd8b94222bbbc742f47b91f45~mv2.jpg"},
+                    {text: "Tikal", image: "https://lh6.googleusercontent.com/proxy/VMDZtVx_nOzZJQe56bMAEQUWrV-hA4YVbkmvhzvq2RqiO219rliLvcPUE6o4LIqk3r5AfD_L-mKv4YFILW7WivpVED-c72sRpmbqdl9jL5-oPQ"},
+                    {text: "Sitio Arqueológico San Andrés", image: "https://www.visitcentroamerica.com/wp-content/uploads/2017/08/ver-centroamerica-el-salvador-sitio-arqueol%C3%B3gico-san-andres-04.jpg"},
+                    {text: "Chichén Itzá", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Kukulk%C3%A1n_rodeada_de_azul..JPG/1200px-Kukulk%C3%A1n_rodeada_de_azul..JPG"}
+                ],
+                correct: 2
+            },
+            {
+                question: "¿Cuál es la playa más famosa para el surf en El Salvador?",
+                hint: "Es un lugar ideal para los surfistas y tiene una vida nocturna vibrante.",
+                options: [
+                    {text: "El Tunco", image: "https://i0.wp.com/passporterapp.com/es/blog/wp-content/uploads/2022/05/que-ver-en-el-tunco-scaled.jpg?fit=2560%2C1707&ssl=1"},
+                    {text: "El Sunzal", image: "https://diarioelsalvador.com/wp-content/uploads/2021/05/photo5008241384410425617-1024x646.jpg"},
+                    {text: "La Libertad", image: "https://diarioelsalvador.com/wp-content/uploads/2021/12/LA-LIBERTAD.jpg"},
+                    {text: "El Zonte", image: "https://everythingelsalvador.com/wp-content/uploads/2022/11/El-Zonte-Travel-Guide-1200x800.webp"}
+                ],
+                correct: 0
+            },
+            {
+                question: "¿Qué lago volcánico hay en El Salvador?",
+                hint: "Es famoso por su color y belleza natural.",
+                options: [
+                    {text: "Lago de Coatepeque", image: "https://www.visitcentroamerica.com/wp-content/uploads/2017/08/ver-centroamerica-el-salvador-lago-coapeteque-05.jpg"},
+                    {text: "Lago de Ilopango", image: "https://www.visitcentroamerica.com/wp-content/uploads/2017/08/ver-centroamerica-el-salvador-lago-coapeteque-05.jpg"},
+                    {text: "Lago de Güija", image: "https://elsalvador.travel/system/wp-content/uploads/2021/04/10012021-produccio%CC%81n-Gu%CC%88ija-APPEX-3.jpg"},
+                    {text: "Laguna de Alegría", image: "https://elsalvador.travel/system/wp-content/uploads/2021/04/Laguna-de-Alegri%CC%81a-edicio%CC%81n-chris.jpg"}
+                ],
+                correct: 0
+            },
+            {
+                question: "¿Qué volcán es conocido por su lago verde en el cráter?",
+                hint: "Este volcán está cerca de una ciudad que comparte su nombre.",
+                options: [
+                    {text: "Volcán de San Miguel", image: "https://cdn-pro.elsalvador.com/wp-content/uploads/2022/11/volcan-de-san-miguel-1.jpg"},
+                    {text: "Volcán de Santa Ana", image: "https://elsalvador.travel/system/wp-content/uploads/2020/01/Volca%CC%81n-Ilamatepeq-Santa-Ana-20.jpg"},
+                    {text: "Volcán de San Vicente", image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/29/bb/eb/c7/caption.jpg?w=1200&h=-1&s=1"}
+                ],
+                correct: 1
+            },
+            {
+                question: "¿Qué cascadas naturales se encuentran en Chalatenango?",
+                hint: "Son populares entre los turistas por su belleza y fácil acceso.",
+                options: [
+                    {text: "Cascadas Los Tercios", image: "https://elsalvador.travel/system/wp-content/uploads/2022/10/Tercios03.jpg"},
+                    {text: "Cascadas El Escuco", image: "https://guanacos.com/wp-content/uploads/2023/02/GUANACOS-CASCADA-EL-ESCUCO-3-1024x683.jpg"},
+                    {text: "Cascadas de Juayúa", image: "https://elsalvador.travel/system/wp-content/uploads/2021/04/Tour-de-las-7-cascadas-Juayua3E3A2956.jpg"},
+                    {text: "Cascadas El Chorrerón", image: "https://juanlievano.com/wp-content/uploads/2021/02/DSC_0104.jpg"}
+                ],
+                correct: 0
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        const quizContainer = document.getElementById("quiz");
+        const resultContainer = document.getElementById("result");
+
+        function loadQuestion() {
+            const questionData = quizData[currentQuestion];
+            quizContainer.innerHTML = `
+                <div class="question">${questionData.question}</div>
+                <div class="hint">${questionData.hint}</div>
+                <div class="options">
+                    ${questionData.options.map((option, index) => `
+                        <div class="option" onclick="checkAnswer(${index})">
+                            <img src="${option.image}" alt="${option.text}">
+                            <div class="overlay">${option.text}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function checkAnswer(selected) {
+            const correctAnswer = quizData[currentQuestion].correct;
+            if (selected === correctAnswer) {
+                score++;
+            }
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            quizContainer.innerHTML = '';
+            resultContainer.innerHTML = `Tu puntuación es: ${score} de ${quizData.length}`;
+            resultContainer.style.opacity = 1;
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
