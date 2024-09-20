@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuentra el Lugar Turístico</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffdd57;
+        }
+        h1 {
+            text-align: center;
+            color: #ffdd57;
+        }
+        #map {
+            height: 80vh;
+            width: 100%;
+        }
+        .info-container {
+            padding: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #ffdd57;
+            color: #1a1a1a;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #e0c04d;
+        }
+        .clue {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .result {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #e0c04d;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Encuentra el Lugar Turístico</h1>
+    
+    <div class="info-container">
+        <div id="clue" class="clue">Pista: (Aquí aparecerá la pista del lugar turístico)</div>
+        <button onclick="submitGuess()">Enviar Marcador</button>
+        <button onclick="nextPlace()">Siguiente Lugar</button>
+        <div id="result" class="result"></div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        const places = [
+            { name: "Playa El Tunco", coords: [13.492996538325523, -89.38147643500668], clues: ["Famoso por sus olas.", "Destino surfero en La Libertad."] },
+            { name: "Centro Histórico de San Salvador", coords: [13.695837915185809, -89.1967802434791], clues: ["Capital de El Salvador.", "Ubicado en el corazón de San Salvador."] },
+            { name: "Surf City", coords: [13.493192264029512, -89.38147608655342], clues: ["Serie de playas en La Libertad.", "Conocido por el surf."] },
+            { name: "Tazumal", coords: [13.979701877972957, -89.67421755735893], clues: ["Ruinas Mayas.", "Está en Chalchuapa."] },
+            { name: "El Boquerón", coords: [13.736645755912368, -89.28711279880069], clues: ["Parque Nacional.", "Tiene un cráter volcánico."] },
+            { name: "Lago de Coatepeque", coords: [13.861764230553785, -89.54502759010914], clues: ["Lago de cráter con aguas turquesas.", "Ubicado en Coatepeque."] },
+            { name: "Divino Salvador del Mundo", coords: [13.70167001720474, -89.22457112084045], clues: ["Monumento emblemático.", "En el centro de San Salvador."] },
+            { name: "Cascadas Los Tercios", coords: [13.939121251711903, -89.01315939853055], clues: ["Cascadas con formaciones rocosas.", "En Suchitoto."] },
+            { name: "Lago de Suchitoto", coords: [14.086542786524525, -89.12244068488529], clues: ["Lago rodeado de colinas.", "Ideal para paseos en lancha."] },
+            { name: "Peñón de Comasagua", coords: [13.595267365584666, -89.37600911043505], clues: ["Formación rocosa imponente.", "Ofrece vistas panorámicas."] },
+            { name: "Sitio Arqueológico San Andrés", coords: [13.809329400849059, -89.38943235414841], clues: ["Ruinas Mayas.", "Con estructuras ceremoniales."] },
+            { name: "Santa Ana Volcano", coords: [13.88025, -89.56085], clues: ["Volcán activo.", "Ubicado cerca de Santa Ana."] }
+        ];
+
+        let currentPlaceIndex = 0;
+        let marker;
+        let correctMarker;
+
+        const map = L.map('map').setView([13.7942, -88.8965], 8); // Centro de El Salvador
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        function updateClue() {
+            const clueElement = document.getElementById('clue');
+            clueElement.innerText = `Pista: ${places[currentPlaceIndex].clues.join(' ')}`
+        }
+
+        function showCorrectLocation(coords) {
+            if (correctMarker) {
+                map.removeLayer(correctMarker); // Elimina el marcador correcto anterior si ya existe
+            }
+            correctMarker = L.marker(coords, { color: 'red' }).addTo(map);
+            map.setView(coords, 12);
+            correctMarker.bindPopup(`<b>Ubicación Correcta: ${places[currentPlaceIndex].name}</b>`).openPopup();
+        }
+
+        function submitGuess() {
+            if (!marker) {
+                alert("¡Por favor, selecciona un lugar en el mapa!");
+                return;
+            }
+
+            const userCoords = marker.getLatLng();
+            const placeCoords = places[currentPlaceIndex].coords;
+
+            const distance = calculateDistance(userCoords.lat, userCoords.lng, placeCoords[0], placeCoords[1]);
+
+            let resultMessage;
+            if (distance < 10) {
+                resultMessage = `¡Excelente! Adivinaste el lugar correctamente. Estás a solo ${distance.toFixed(2)} km de distancia.`;
+                showCorrectLocation(placeCoords);
+            } else if (distance < 50) {
+                resultMessage = `¡Casi! Estás a ${distance.toFixed(2)} km del lugar correcto.`;
+                showCorrectLocation(placeCoords);
+            } else {
+                resultMessage = `Lo siento, estás a ${distance.toFixed(2)} km del lugar. La ubicación correcta es mostrada en el mapa.`;
+                showCorrectLocation(placeCoords);
+            }
+
+            document.getElementById('result').innerText = resultMessage;
+        }
+
+        function nextPlace() {
+            currentPlaceIndex = (currentPlaceIndex + 1) % places.length;
+            updateClue();
+            if (marker) {
+                map.removeLayer(marker); // Elimina el marcador del usuario anterior si ya existe
+                marker = null;
+            }
+            if (correctMarker) {
+                map.removeLayer(correctMarker); // Elimina el marcador correcto anterior si ya existe
+                correctMarker = null;
+            }
+            document.getElementById('result').innerText = '';
+        }
+
+        map.on('click', function(e) {
+            if (marker) {
+                map.removeLayer(marker); // Elimina el marcador anterior si ya existe
+            }
+            marker = L.marker(e.latlng).addTo(map);
+        });
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radio de la Tierra en km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // Distancia en km
+        }
+
+        // Inicializa el juego con la primera pista
+        updateClue();
+    </script>
+</body>
+</html>
